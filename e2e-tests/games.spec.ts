@@ -24,6 +24,35 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter games by multiple categories and publishers', async ({ page }) => {
+    await page.goto('/');
+    const categoryFilter = page.getByTestId('category-filter');
+    const publisherFilter = page.getByTestId('publisher-filter');
+
+    await expect(categoryFilter).toBeVisible();
+    await expect(publisherFilter).toBeVisible();
+
+    const categoryOptions = categoryFilter.locator('option');
+    const publisherOptions = publisherFilter.locator('option');
+    expect(await categoryOptions.count()).toBeGreaterThan(1);
+    expect(await publisherOptions.count()).toBeGreaterThan(1);
+
+    await categoryFilter.selectOption([(await categoryOptions.nth(0).getAttribute('value')) ?? '']);
+    await publisherFilter.selectOption([(await publisherOptions.nth(0).getAttribute('value')) ?? '']);
+    await page.getByTestId('apply-filters').click();
+
+    await expect(page).toHaveURL(/category=.*publisher=/);
+    await expect(page.getByTestId('filter-result-count')).toContainText('Showing');
+    await expect(page.getByTestId('clear-filters')).toHaveAttribute('href', '/');
+  });
+
+  test('should show a no-results message when filters do not match', async ({ page }) => {
+    await page.goto('/?category=99999&publisher=99999');
+
+    await expect(page.getByTestId('no-filter-results')).toBeVisible();
+    await expect(page.getByTestId('visible-game-count')).toHaveText('0');
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;
