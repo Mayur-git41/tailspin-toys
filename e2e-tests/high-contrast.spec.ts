@@ -16,18 +16,23 @@ test.describe('High contrast mode', () => {
     await expect(toggle).toBeFocused();
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
     await expect(toggle).toHaveAccessibleName('Disable high contrast mode');
+    await expect(toggle).toHaveText('Normal Mode');
     await expect(page.locator('html')).toHaveClass(/high-contrast/);
   });
 
   test('persists the preference after a page reload', async ({ page }) => {
-    const toggle = page.getByRole('button', { name: 'Enable high contrast mode' });
+    const toggle = page.getByTestId('high-contrast-toggle');
 
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await expect(toggle).toHaveText('High Contrast');
     await toggle.click();
     await expect(page.locator('html')).toHaveClass(/high-contrast/);
+    await expect(toggle).toHaveText('Normal Mode');
     await page.reload();
 
     await expect(page.locator('html')).toHaveClass(/high-contrast/);
-    await expect(page.getByRole('button', { name: 'Disable high contrast mode' }))
-      .toHaveAttribute('aria-pressed', 'true');
+    const activeToggle = page.getByRole('button', { name: 'Disable high contrast mode' });
+    await expect(activeToggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(activeToggle).toHaveText('Normal Mode');
   });
 });
